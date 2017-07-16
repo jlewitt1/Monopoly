@@ -214,7 +214,7 @@ body{
     width: 25%;
     height: 25%;
     margin: 4%;
-    background-color: black;
+    background-color: #364c9c;
     border-radius: 100px;
     opacity:0;
 }
@@ -222,3 +222,39 @@ body{
 .dice-dot.right{
     margin-left:36%;
 }
+
+.in-jail .jailed { 
+    background-image:url(../images/sadFace.png);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.property.player1 .content #player1{ 
+    background-image:url(../images/happyFace.png);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.property.player2 .content #player2{ 
+    background-image:url(../images/happyFace.png);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.property.player3 .content #player3{ 
+    background-image:url(../images/happyFace.png);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.property.player4 .content #player4{ 
+    background-image:url(../images/happyFace.png);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+

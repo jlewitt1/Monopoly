@@ -1,6 +1,6 @@
 var Monopoly = {};
 Monopoly.allowRoll = true;
-Monopoly.moneyAtStart = 1000;
+Monopoly.moneyAtStart = 200;
 Monopoly.doubleCounter = 0;
 
 Monopoly.init = function(){
@@ -43,12 +43,15 @@ Monopoly.getPlayersMoney = function(player){
 Monopoly.updatePlayersMoney = function(player,amount){
     var playersMoney = parseInt(player.attr("data-money"));
     playersMoney -= amount;
+    console.log(playersMoney);
     if (playersMoney < 0 ){
-        alert("you are broke!")
-    }
+        alert("you are broke!");
+        Monopoly.playSound("chaching");
+    } else { 
     player.attr("data-money",playersMoney);
     player.attr("title",player.attr("id") + ": $" + playersMoney);
     Monopoly.playSound("chaching");
+    }
 };
 
 
@@ -139,6 +142,7 @@ Monopoly.handleBuyProperty = function(player,propertyCell){
         }
     });
     Monopoly.showPopup("buy");
+    console.log(propertyCost);
 };
 
 Monopoly.handlePayRent = function(player,propertyCell){
@@ -318,6 +322,10 @@ Monopoly.isValidInput = function(validate,value){
             if(value > 1 && value <= 4){
                 isValid = true;
             }
+            else { 
+                isValid;
+                break;
+            }
             //TODO: remove when done
             console.log("the val " + value)
             isValid = true;
@@ -336,6 +344,7 @@ Monopoly.showErrorMsg = function(){
     setTimeout(function(){
             $(".popup-page .invalid-error").fadeTo(500,0);
     },2000);
+    Monopoly.playSound("chaching");
 };
 
 

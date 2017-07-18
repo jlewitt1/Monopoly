@@ -1,7 +1,7 @@
 
 var Monopoly = {};
 Monopoly.allowRoll = true;
-Monopoly.moneyAtStart = 10;
+Monopoly.moneyAtStart = 250;
 Monopoly.doubleCounter = 0;
 
 //Initial function to start the game
@@ -44,9 +44,13 @@ Monopoly.updatePlayersMoney = function(player,amount){
     var playersMoney = parseInt(player.attr("data-money"));
     playersMoney -= amount;
     console.log(player + " money: " + playersMoney);
-    if (playersMoney < 0 ){
-        //alert("you are broke!");
-        Monopoly.showPopup("broke");
+    if (playersMoney <= 0 ){
+        Monopoly.showPopup("broke"); //Monopoly.updatePlayersMoney(Monopoly.getCurrentPlayer(), 100000)-->check if player is broke
+        var popup = Monopoly.getPopup("broke");
+        popup.find("button").unbind("click").bind("click",function(){
+        Monopoly.closePopup();
+        //Monopoly.removeClass("player shadowed"); -->need to remove player from the game and clear properties
+    });
         Monopoly.playSound("DunDun");
     } else { 
         player.attr("data-money",playersMoney);
@@ -104,7 +108,7 @@ Monopoly.handleTurn = function(){
     }
 }
 
-Monopoly.setNextPlayerTurn = function(){ //prevent from switching to next player if double is rolled
+Monopoly.setNextPlayerTurn = function(){ //prevent from switching to next player if double is rolled -->check bug for double roll
     if (Monopoly.doubleCounter >0) { 
         Monopoly.allowRoll = true;
     } else { 
@@ -196,9 +200,22 @@ Monopoly.handleChanceCard = function(player){
 };
 
 Monopoly.handleCommunityCard = function(player){
-    //TODO: implement this method
-    alert("not implemented yet!")
-    Monopoly.setNextPlayerTurn();
+  var popup = Monopoly.getPopup("community");
+    popup.find(".popup-content").addClass("loading-state");
+    $.get("https://itcmonopoly.appspot.com/get_random_community_card", function(communityJson){
+        popup.find(".popup-content #text-placeholder").text(communityJson["content"]);
+        popup.find(".popup-title").text(communityJson["title"]);
+        popup.find(".popup-content").removeClass("loading-state");
+        popup.find(".popup-content button").attr("data-action",communityJson["action"]).attr("data-amount",communityJson["amount"]);
+    },"json");
+    popup.find("button").unbind("click").bind("click",function(){
+        var currentBtn = $(this);
+        var action = currentBtn.attr("data-action");
+        var amount = currentBtn.attr("data-amount");
+        console.log("testing the action and amount " + action + " " + amount)
+        Monopoly.handleAction(player,action,amount);
+    });
+    Monopoly.showPopup("community");
 };
 
 
@@ -333,9 +350,7 @@ Monopoly.isValidInput = function(validate,value){
     // if (!isValid){
     //     Monopoly.showErrorMsg();
     // }
-
     return isValid;
-
 }
 
 //display error message
@@ -369,5 +384,6 @@ Monopoly.showPopup = function(popupId){
     $(".popup-lightbox .popup-page#" + popupId).show();
     $(".popup-lightbox").fadeIn();
 };
+
 
 Monopoly.init();

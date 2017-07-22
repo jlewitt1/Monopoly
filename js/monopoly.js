@@ -1,7 +1,7 @@
 
 var Monopoly = {};
 Monopoly.allowRoll = true;
-Monopoly.moneyAtStart = 250;
+Monopoly.moneyAtStart = 100;
 Monopoly.doubleCounter = 0;
 
 //Initial function to start the game
@@ -40,16 +40,17 @@ Monopoly.getPlayersMoney = function(player){
     return parseInt(player.attr("data-money"));
 };
 
+//if player is broke will be removed
 Monopoly.updatePlayersMoney = function(player,amount){
     var playersMoney = parseInt(player.attr("data-money"));
     playersMoney -= amount;
-    console.log(player + " money: " + playersMoney);
+    console.log(playersMoney)
     if (playersMoney <= 0 ){
         Monopoly.showPopup("broke"); //Monopoly.updatePlayersMoney(Monopoly.getCurrentPlayer(), 100000)-->check if player is broke
         var popup = Monopoly.getPopup("broke");
         popup.find("button").unbind("click").bind("click",function(){
         Monopoly.closePopup();
-        //Monopoly.removeClass("player shadowed"); -->need to remove player from the game and clear properties
+        player.remove();
     });
         Monopoly.playSound("DunDun");
     } else { 
@@ -67,12 +68,11 @@ Monopoly.rollDice = function(){
     $(".dice#dice2").attr("data-num",result2).find(".dice-dot.num" + result2).css("opacity",1);
         if (result1 == result2){
             Monopoly.doubleCounter++;
-            // Monopoly.allowRoll = true; //
-        } else if (result1 !== result2){
+        } else {
             Monopoly.doubleCounter = 0;
         }
     var currentPlayer = Monopoly.getCurrentPlayer();
-    Monopoly.handleAction(currentPlayer,"move",result1 + result2);
+    Monopoly.handleAction(currentPlayer,"move",result1 + result2); 
 };
 
 Monopoly.movePlayer = function(player,steps){
@@ -108,19 +108,31 @@ Monopoly.handleTurn = function(){
     }
 }
 
-Monopoly.setNextPlayerTurn = function(){ //prevent from switching to next player if double is rolled -->check bug for double roll
+Monopoly.setNextPlayerTurn = function(){ //prevent from switching to next player if double is rolled 
+    var currentPlayerTurn = Monopoly.getCurrentPlayer();
     if (Monopoly.doubleCounter >0) { 
+          if (currentPlayerTurn.is(".jailed")){
+            Monopoly.doubleCounter =0;
+            Monopoly.setNextPlayerTurn();
+            return;
+          } 
         Monopoly.allowRoll = true;
     } else { 
-        Monopoly.doubleCounter =0;
-        var currentPlayerTurn = Monopoly.getCurrentPlayer();
+        //Monopoly.doubleCounter =0;
         var playerId = parseInt(currentPlayerTurn.attr("id").replace("player",""));
+        console.log("current-player", playerId);
         var nextPlayerId = playerId + 1;
+        console.log("next-player", nextPlayerId);
         if (nextPlayerId > $(".player").length){
                 nextPlayerId = 1;
         }
         currentPlayerTurn.removeClass("current-turn");
         var nextPlayer = $(".player#player" + nextPlayerId);
+        while (nextPlayer == undefined){
+            nextPlayerId ++
+            var nextPlayer = $(".player#player" + nextPlayerId);
+
+        }
         nextPlayer.addClass("current-turn");
         if (nextPlayer.is(".jailed")){
             var currentJailTime = parseInt(nextPlayer.attr("data-jail-time"));
@@ -145,13 +157,13 @@ Monopoly.handleBuyProperty = function(player,propertyCell){
     popup.find("button").unbind("click").bind("click",function(){
         var clickedBtn = $(this);
         if (clickedBtn.is("#yes")){
+            Monopoly.closePopup();
             Monopoly.handleBuy(player,propertyCell,propertyCost);
         }else{
             Monopoly.closeAndNextTurn();
         }
     });
     Monopoly.showPopup("buy");
-    console.log(propertyCost);
 };
 
 Monopoly.handlePayRent = function(player,propertyCell){
@@ -162,7 +174,6 @@ Monopoly.handlePayRent = function(player,propertyCell){
     popup.find("#amount-placeholder").text(currentRent);
     popup.find("button").unbind("click").bind("click",function(){
         var properyOwner = $(".player#"+ properyOwnerId);
-        console.log(properyOwnerId)
         Monopoly.updatePlayersMoney(player,currentRent);
         Monopoly.updatePlayersMoney(properyOwner,-1*currentRent);
         Monopoly.closeAndNextTurn();
@@ -193,7 +204,6 @@ Monopoly.handleChanceCard = function(player){
         var currentBtn = $(this);
         var action = currentBtn.attr("data-action");
         var amount = currentBtn.attr("data-amount");
-        console.log("testing the action and amount " + action + " " + amount)
         Monopoly.handleAction(player,action,amount);
     });
     Monopoly.showPopup("chance");
@@ -212,13 +222,12 @@ Monopoly.handleCommunityCard = function(player){
         var currentBtn = $(this);
         var action = currentBtn.attr("data-action");
         var amount = currentBtn.attr("data-amount");
-        console.log("testing the action and amount " + action + " " + amount)
         Monopoly.handleAction(player,action,amount);
     });
     Monopoly.showPopup("community");
 };
 
-
+//add class of "jailed" to user while in jail
 Monopoly.sendToJail = function(player){
     player.addClass("jailed");
     player.attr("data-jail-time",1);
@@ -281,10 +290,8 @@ Monopoly.handleBuy = function(player,propertyCell,propertyCost){
 };
 
 Monopoly.handleAction = function(player,action,amount){
-    //console.log(action)
     switch(action){
         case "move":
-       	    console.log(amount)
             Monopoly.movePlayer(player,amount);
              break;
         case "pay":
@@ -316,7 +323,6 @@ Monopoly.getNextCell = function(cell){
     var currentCellId = parseInt(cell.attr("id").replace("cell",""));
     var nextCellId = currentCellId + 1
     if (nextCellId > 40){
-        console.log("YAY")
         Monopoly.handlePassedGo();
         nextCellId = 1;
     }
@@ -341,15 +347,7 @@ Monopoly.isValidInput = function(validate,value){
                 isValid;
                 Monopoly.showErrorMsg();
             }
-            //TODO: remove when done
-            //console.log("the val " + value)
-            // isValid = true;
-            // break;
     }
-
-    // if (!isValid){
-    //     Monopoly.showErrorMsg();
-    // }
     return isValid;
 }
 
